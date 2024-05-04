@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {IERC20} from '@openzeppelin-contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol';
-import {ReentrancyGuard} from '@openzeppelin-contracts/security/ReentrancyGuard.sol';
+import {ReentrancyGuard} from '@openzeppelin-contracts/utils/ReentrancyGuard.sol';
 import {IAaveV3LoopingStrategy} from './interfaces/IAaveV3LoopingStrategy.sol';
 import {ISwapper} from './interfaces/ISwapper.sol';
 
@@ -342,7 +342,7 @@ contract AaveV3LoopingStrategy is IAaveV3LoopingStrategy, ReentrancyGuard {
 
     function _ensureApprove(address _token, uint _amt) internal {
         if (IERC20(_token).allowance(address(this), POOL) < _amt) {
-            IERC20(_token).safeApprove(POOL, type(uint).max);
+            IERC20(_token).approve(POOL, type(uint).max);
         }
     }
 

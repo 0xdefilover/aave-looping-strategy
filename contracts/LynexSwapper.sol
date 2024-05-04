@@ -73,7 +73,7 @@ contract LynexSwapper is ISwapper {
 
     function _ensureApprove(address token, uint amt) internal {
         if (IERC20(token).allowance(address(this), ROUTER) < amt) {
-            IERC20(token).safeApprove(ROUTER, type(uint).max);
+            IERC20(token).approve(ROUTER, type(uint).max);
         }
     }
 
