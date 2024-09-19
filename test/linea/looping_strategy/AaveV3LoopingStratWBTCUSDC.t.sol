@@ -21,11 +21,12 @@ interface IPool {
     function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint);
 }
 
-/// @dev use lynex swapper for testing, other swappers are tested as unit tests
-contract AaveV3LoopingStratWBTCETHTest is BaseTest {
+// note: use lynex swapper for testing
+//       other swappers are testes as unit tests
+contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
     function setUp() public {
         collPool = Constants.A_WBTC;
-        debtPool = Constants.D_ETH;
+        debtPool = Constants.D_USDC;
         _setUp();
     }
 

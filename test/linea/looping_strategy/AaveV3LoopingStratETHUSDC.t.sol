@@ -6,26 +6,15 @@ import {LynexSwapper, ILynexRouter} from '../../../contracts/LynexSwapper.sol';
 import {IERC20} from '@openzeppelin-contracts/token/ERC20/IERC20.sol';
 
 import {Constants} from '../Constants.sol';
-import {BaseTest} from './BaseTest.sol';
+import {BaseTest, IDebtToken} from './BaseTest.sol';
 import {Vm, console} from 'forge-std/Test.sol';
 
-interface IDebtToken {
-    function UNDERLYING_ASSET_ADDRESS() external view returns (address);
-
-    function balanceOf(address account) external view returns (uint);
-
-    function approveDelegation(address delegatee, uint amount) external;
-}
-
-interface IPool {
-    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint);
-}
-
-/// @dev use lynex swapper for testing, other swappers are tested as unit tests
-contract AaveV3LoopingStratWBTCETHTest is BaseTest {
+/// @dev Use lynex swapper for testing
+/// other swappers are tested as unit tests
+contract AaveV3LoopingStratETHUSDCTest is BaseTest {
     function setUp() public {
-        collPool = Constants.A_WBTC;
-        debtPool = Constants.D_ETH;
+        collPool = Constants.A_ETH;
+        debtPool = Constants.D_USDC;
         _setUp();
     }
 
@@ -65,6 +54,40 @@ contract AaveV3LoopingStratWBTCETHTest is BaseTest {
         // call increase position
         IAaveV3LoopingStrategy(loopStrat).increasePos(params);
         vm.stopPrank();
+    }
+
+    // increase pos (native token)
+    function testIncreasePosNative() public {
+        address user = Constants.ALICE;
+
+        uint amtIn = _getTokenAmtFromUSD(Constants.WETH, 100);
+        // deal token
+        deal(user, amtIn);
+        // prepare params
+        uint debtAmt = _getTokenAmtFromUSD(debtToken, 100);
+        ILynexRouter.route[] memory routes = new ILynexRouter.route[](1);
+        routes[0] = ILynexRouter.route({from: debtToken, to: collToken, stable: false});
+        bytes memory data = abi.encode(routes, block.timestamp);
+        IAaveV3LoopingStrategy.IncreasePosParams memory params = IAaveV3LoopingStrategy.IncreasePosParams({
+            tokenIn: Constants.WETH,
+            amtIn: amtIn,
+            collPool: collPool,
+            borrPool: debtPool,
+            borrAmt: debtAmt,
+            swapInfo: IAaveV3LoopingStrategy.SwapInfo({swapper: swapper, slippage: 0, data: data})
+        });
+        uint wNativeBalBf = IERC20(Constants.WETH).balanceOf(user);
+        uint nativeBalBf = user.balance;
+        uint collPoolBalBf = IERC20(collPool).balanceOf(user);
+        uint debtBalBf = IDebtToken(debtPool).balanceOf(user);
+        vm.startPrank(user, user);
+        // call increase position
+        IAaveV3LoopingStrategy(loopStrat).increasePosNative{value: amtIn}(params);
+        vm.stopPrank();
+        assertEq(wNativeBalBf, IERC20(Constants.WETH).balanceOf(user), 'wNative should not change');
+        assertEq(nativeBalBf - user.balance, amtIn, 'native balance should decrease');
+        assertGe(IERC20(collPool).balanceOf(user) - collPoolBalBf, 0, 'bad coll balance');
+        assertApproxEqAbs(IDebtToken(debtPool).balanceOf(user) + debtBalBf, debtAmt, 1, 'bad debt balance');
     }
 
     // decrease pos (tokenOut = collToken)
@@ -209,6 +232,38 @@ contract AaveV3LoopingStratWBTCETHTest is BaseTest {
         _decreasePos(user, collAmt, repayAmt, debtToken);
         assertEq(IERC20(collPool).balanceOf(user), 0, 'coll pool not withdrawn');
         assertEq(IERC20(debtPool).balanceOf(user), 0, 'debt not repaid');
+    }
+
+    // test decrease pos native
+    function testClosePosNative() public {
+        address user = Constants.ALICE;
+        // increase pos
+        _increasePos(user, collToken, 100, 100);
+        // prepare params
+        skip(1000);
+        uint collAmt = IERC20(collPool).balanceOf(user);
+        uint repayAmt = IERC20(debtPool).balanceOf(user);
+        uint wNativeBalBf = IERC20(Constants.WETH).balanceOf(user);
+        uint nativeBalBf = user.balance;
+        ILynexRouter.route[] memory routes = new ILynexRouter.route[](1);
+        routes[0] = ILynexRouter.route({from: collToken, to: debtToken, stable: false});
+        bytes memory data = abi.encode(routes, block.timestamp);
+        IAaveV3LoopingStrategy.DecreasePosParams memory params = IAaveV3LoopingStrategy.DecreasePosParams({
+            collPool: collPool,
+            collAmt: collAmt,
+            borrPool: debtPool,
+            debtAmt: repayAmt,
+            tokenOut: Constants.WETH,
+            swapInfo: IAaveV3LoopingStrategy.SwapInfo({swapper: swapper, slippage: type(uint).max, data: data})
+        });
+        vm.startPrank(user, user);
+        // call close pos native
+        IAaveV3LoopingStrategy(loopStrat).decreasePosNative(params);
+        vm.stopPrank();
+        assertEq(IERC20(collPool).balanceOf(user), 0, 'coll pool not withdrawn');
+        assertEq(IERC20(debtPool).balanceOf(user), 0, 'debt not repaid');
+        assertEq(wNativeBalBf, IERC20(Constants.WETH).balanceOf(user), 'wNative should not change');
+        assertGe(user.balance - nativeBalBf, 0, 'native balance should increase');
     }
 
     // repay debt with collateral

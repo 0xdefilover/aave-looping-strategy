@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 import {AaveV3LoopingStrategy, IAaveV3LoopingStrategy, IAToken} from '../../../contracts/AaveV3LoopingStrategy.sol';
@@ -21,11 +20,12 @@ interface IPool {
     function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint);
 }
 
-/// @dev use lynex swapper for testing, other swappers are tested as unit tests
-contract AaveV3LoopingStratWBTCETHTest is BaseTest {
+// note: use lynex swapper for testing
+//       other swappers are testes as unit tests
+contract AaveV3LoopingStratUSDCUSDTTest is BaseTest {
     function setUp() public {
-        collPool = Constants.A_WBTC;
-        debtPool = Constants.D_ETH;
+        collPool = Constants.A_USDC;
+        debtPool = Constants.D_USDT;
         _setUp();
     }
 
