@@ -32,13 +32,13 @@ contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
 
     // increase pos (tokenIn = collToken)
     function testIncreasePosCollToken(uint seed0) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         _increasePos(Constants.ALICE, collToken, usdIn, usdIn);
     }
 
     // increase pos (tokenIn = debtToken)
     function testIncreasePosDebtToken(uint seed0) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         _increasePos(Constants.ALICE, debtToken, usdIn, usdIn);
     }
 
@@ -70,7 +70,7 @@ contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
 
     // decrease pos (tokenOut = collToken)
     function testDecreasePosCollToken(uint seed0, uint seed1) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         address user = Constants.ALICE;
         // increase pos
         _increasePos(user, collToken, usdIn, usdIn);
@@ -122,7 +122,7 @@ contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
 
     // decrease pos (tokenOut = debtToken)
     function testDecreasePosDebtToken(uint seed0, uint seed1) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         address user = Constants.ALICE;
         // increase pos
         _increasePos(user, collToken, usdIn, usdIn);
@@ -174,7 +174,7 @@ contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
 
     // increase leverage
     function testDecrerasePosIncreaseLeverage(uint seed0) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         address user = Constants.ALICE;
         // increase pos
         _increasePos(user, collToken, usdIn, usdIn);
@@ -187,7 +187,7 @@ contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
 
     // decrease leverage
     function testDecrerasePosDecreaseLeverage(uint seed0) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         address user = Constants.ALICE;
         // increase pos
         _increasePos(user, collToken, usdIn, usdIn);
@@ -214,7 +214,7 @@ contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
 
     // repay debt with collateral
     function testRepayDebtWithCollateral(uint seed0, uint seed1) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         address user = Constants.ALICE;
         // increase pos
         _increasePos(user, collToken, usdIn, usdIn);
@@ -228,7 +228,7 @@ contract AaveV3LoopingStratWBTCUSDCTest is BaseTest {
 
     // repay total debt with collateral
     function testRepayDebtWithCollateralTotalDebt(uint seed0) public {
-        uint usdIn = bound(seed0, 10, 1_000_000);
+        uint usdIn = bound(seed0, 10, 100_000);
         address user = Constants.ALICE;
         // increase pos
         _increasePos(user, collToken, usdIn, usdIn);

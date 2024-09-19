@@ -103,8 +103,8 @@ contract BaseTest is Test {
 
     // add liquidity lynex pool
     function _addLiquidityLynex(address user, address tokenA, address tokenB, bool stable) internal {
-        uint amtA = _getTokenAmtFromUSD(tokenA, 100_000_000);
-        uint amtB = _getTokenAmtFromUSD(tokenB, 100_000_000);
+        uint amtA = _getTokenAmtFromUSD(tokenA, 1_000_000);
+        uint amtB = _getTokenAmtFromUSD(tokenB, 1_000_000);
         deal(tokenA, user, amtA);
         deal(tokenB, user, amtB);
         vm.startPrank(user, user);
@@ -118,7 +118,7 @@ contract BaseTest is Test {
 
     // add liquidity to lending pool
     function _addLiquidityLending(address user, address token) internal {
-        uint amt = _getTokenAmtFromUSD(token, 100_000_000);
+        uint amt = _getTokenAmtFromUSD(token, 1_000_000);
         deal(token, user, amt);
         vm.startPrank(user, user);
         IERC20(token).approve(Constants.AAVE_LENDING_POOL, amt);
