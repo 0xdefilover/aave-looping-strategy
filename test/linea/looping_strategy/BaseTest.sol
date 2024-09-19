@@ -84,9 +84,9 @@ contract BaseTest is Test {
         address underlying_asset = IAToken(collPool).UNDERLYING_ASSET_ADDRESS();
         collToken = underlying_asset == address(0) ? Constants.WETH : underlying_asset;
         debtToken = IDebtToken(debtPool).UNDERLYING_ASSET_ADDRESS();
-        // init lending pool liquidity
-        _addLiquidityLynex(Constants.BOB, collToken, debtToken, false);
         // init lynex pool liquidity
+        _addLiquidityLynex(Constants.BOB, collToken, debtToken, false);
+        // init lending pool liquidity
         _addLiquidityLending(Constants.BOB, debtToken);
         _approveForStrat(Constants.ALICE);
     }
