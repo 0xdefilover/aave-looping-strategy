@@ -44,6 +44,12 @@ interface IWNative {
 contract AaveV3LoopingStrategy is IAaveV3LoopingStrategy, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    error InvalidTokenIn();
+    error InvalidMsgValue();
+    error InvalidTokenOut();
+    error NotWNative();
+    error TransferFailed();
+
     // constants variables
     uint private constant INTEREST_MODE_NONE = 0; // normal flashloan need to repay flashloan
     uint private constant INTEREST_MODE_VARIABLE = 2; // change flashloan to debt in variable interest rate mode
@@ -63,8 +69,8 @@ contract AaveV3LoopingStrategy is IAaveV3LoopingStrategy, ReentrancyGuard {
     }
 
     function increasePosNative(IncreasePosParams calldata params) external payable nonReentrant {
-        require(params.tokenIn == WNATIVE, 'AaveV3LoopingStrategy: invalid tokenIn');
-        require(msg.value == params.amtIn, 'AaveV3LoopingStrategy: invalid msg.value');
+        if (params.tokenIn != WNATIVE) revert InvalidTokenIn();
+        if (msg.value != params.amtIn) revert InvalidMsgValue();
         // deposit native token to wnative
         IWNative(WNATIVE).deposit{value: msg.value}();
         _increasePos(params);
@@ -77,12 +83,12 @@ contract AaveV3LoopingStrategy is IAaveV3LoopingStrategy, ReentrancyGuard {
     }
 
     function decreasePosNative(DecreasePosParams calldata params) external nonReentrant {
-        require(params.tokenOut == WNATIVE, 'AaveV3LoopingStrategy: invalid tokenOut');
+        if (params.tokenOut != WNATIVE) revert InvalidTokenOut();
         uint amtOut = _decreasePos(params);
         // withdraw wnative to msg.sender
         IWNative(WNATIVE).withdraw(amtOut);
         (bool success,) = payable(msg.sender).call{value: amtOut}('');
-        require(success, 'AaveV3LoopingStrategy: transfer native failed');
+        if (!success) revert TransferFailed();
     }
 
     function repayDebtWithCollateral(RepayDebtWithCollateralParams calldata params) external nonReentrant {
@@ -366,6 +372,6 @@ contract AaveV3LoopingStrategy is IAaveV3LoopingStrategy, ReentrancyGuard {
     }
 
     receive() external payable {
-        require(msg.sender == WNATIVE, 'AaveV3LoopingStrategy: not wnative');
+        if (msg.sender != WNATIVE) revert NotWNative();
     }
 }
